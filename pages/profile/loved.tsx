@@ -1,4 +1,4 @@
-export default function ProfileBought() {
+export default function ProfileLoved() {
   return (
     <div className="flex flex-col space-y-5 py-10">
       {[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map((_, i) => (
@@ -34,7 +34,7 @@ export default function ProfileBought() {
               </svg>
               <span>1</span>
             </div>
-            <div className="flex space-x-0.5 items-center text-sm text-gray-600">
+            <div className="flex space-x-0.5 items-center text-sm  text-gray-600">
               <svg
                 className="w-4 h-4"
                 fill="none"
