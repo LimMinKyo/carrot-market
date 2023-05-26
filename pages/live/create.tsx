@@ -1,4 +1,4 @@
-export default function StreamsCreate() {
+export default function LiveCreate() {
   return (
     <div className="space-y-5 py-10 px-4">
       <div>
