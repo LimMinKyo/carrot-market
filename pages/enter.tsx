@@ -2,11 +2,29 @@ import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
 import classNames from "classnames";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+interface IForm {
+  email?: string;
+  phone?: string;
+}
 
 export default function Enter() {
+  const { register, handleSubmit, reset } = useForm<IForm>();
+
   const [method, setMethod] = useState<"email" | "phone">("email");
-  const onEmailClick = () => setMethod("email");
-  const onPhoneClick = () => setMethod("phone");
+
+  const onEmailClick = () => {
+    reset();
+    setMethod("email");
+  };
+  const onPhoneClick = () => {
+    reset();
+    setMethod("phone");
+  };
+  const onValid = (data: IForm) => {
+    console.log(data);
+  };
 
   return (
     <div className="mt-16 px-4">
@@ -39,12 +57,24 @@ export default function Enter() {
             </button>
           </div>
         </div>
-        <form className="flex flex-col mt-8 space-y-4">
+        <form
+          onSubmit={handleSubmit(onValid)}
+          className="flex flex-col mt-8 space-y-4"
+        >
           {method === "email" ? (
-            <Input name="email" label="Email address" type="email" required />
+            <Input
+              register={register("email", {
+                required: true,
+              })}
+              name="email"
+              label="Email address"
+              type="email"
+              required
+            />
           ) : null}
           {method === "phone" ? (
             <Input
+              register={register("phone")}
               name="phone"
               label="Phone number"
               type="number"
