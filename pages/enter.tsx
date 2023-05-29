@@ -1,5 +1,6 @@
 import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
+import useMutation from "@/libs/client/useMutation";
 import classNames from "classnames";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -10,9 +11,9 @@ interface IForm {
 }
 
 export default function Enter() {
+  const [enter, { loading }] = useMutation("/api/users/enter");
   const { register, handleSubmit, reset } = useForm<IForm>();
 
-  const [submitting, setSubmitting] = useState(false);
   const [method, setMethod] = useState<"email" | "phone">("email");
 
   const onEmailClick = () => {
@@ -25,17 +26,9 @@ export default function Enter() {
     setMethod("phone");
   };
 
-  const onValid = (data: IForm) => {
-    setSubmitting(true);
-    fetch("/api/users/enter", {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(() => {
-      setSubmitting(false);
-    });
+  const onValid = (validForm: IForm) => {
+    if (loading) return;
+    enter(validForm);
   };
 
   return (
@@ -96,7 +89,7 @@ export default function Enter() {
           ) : null}
           {method === "email" ? <Button text={"Get login link"} /> : null}
           {method === "phone" ? (
-            <Button text={submitting ? "Loading" : "Get one-time password"} />
+            <Button text={loading ? "Loading" : "Get one-time password"} />
           ) : null}
         </form>
 
