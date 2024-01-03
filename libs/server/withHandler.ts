@@ -5,7 +5,7 @@ export default function withHandler(
   handler: NextApiHandler
 ): NextApiHandler {
   return async (req, res) => {
-    if (req.method === method) {
+    if (req.method !== method) {
       return res.status(405).end();
     }
 
