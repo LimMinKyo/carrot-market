@@ -1,10 +1,11 @@
 import prisma from "@/libs/server/prisma";
-import withHandler from "@/libs/server/withHandler";
+import withHandler, { ResponseType } from "@/libs/server/withHandler";
 import { NextApiHandler } from "next";
 
-const handler: NextApiHandler = async (req, res) => {
+const handler: NextApiHandler<ResponseType> = async (req, res) => {
   const { phone, email } = req.body;
-  const user = phone ? { phone: +phone } : { email };
+  const user = phone ? { phone: +phone } : email ? { email } : null;
+  if (!user) return res.status(400).json({ ok: false });
   const payload = Math.floor(100000 + Math.random() * 900000) + "";
   const token = await prisma.token.create({
     data: {
@@ -22,9 +23,10 @@ const handler: NextApiHandler = async (req, res) => {
       },
     },
   });
-  console.log(token);
 
-  res.status(200).end();
+  return res.json({
+    ok: true,
+  });
 };
 
 export default withHandler("POST", handler);
