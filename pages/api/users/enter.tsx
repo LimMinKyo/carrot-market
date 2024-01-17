@@ -1,6 +1,9 @@
 import prisma from "@/libs/server/prisma";
 import withHandler, { ResponseType } from "@/libs/server/withHandler";
 import { NextApiHandler } from "next";
+import twilio from "twilio";
+
+const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
 const handler: NextApiHandler<ResponseType> = async (req, res) => {
   const { phone, email } = req.body;
@@ -23,6 +26,15 @@ const handler: NextApiHandler<ResponseType> = async (req, res) => {
       },
     },
   });
+
+  if (phone) {
+    const message = await twilioClient.messages.create({
+      messagingServiceSid: process.env.TWILIO_MSID,
+      to: process.env.TWILIO_PHONE!,
+      body: `Your login token is ${payload}`,
+    });
+    console.log(message);
+  }
 
   return res.json({
     ok: true,
