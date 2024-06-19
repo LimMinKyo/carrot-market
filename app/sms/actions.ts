@@ -1,10 +1,10 @@
 "use server";
-
 import crypto from "crypto";
 import { z } from "zod";
 import validator from "validator";
 import { redirect } from "next/navigation";
 import db from "@/lib/db";
+import getSession from "@/lib/session";
 
 const phoneSchema = z
   .string()
@@ -13,11 +13,28 @@ const phoneSchema = z
     (phone) => validator.isMobilePhone(phone, "ko-KR"),
     "Wrong phone format"
   );
-const tokenSchema = z.coerce.number().min(100000).max(999999);
+
+async function tokenExists(token: number) {
+  const exists = await db.sMSToken.findUnique({
+    where: {
+      token: token.toString(),
+    },
+    select: {
+      id: true,
+    },
+  });
+  return Boolean(exists);
+}
+
+const tokenSchema = z.coerce
+  .number()
+  .min(100000)
+  .max(999999)
+  .refine(tokenExists, "This token does not exist.");
+
 interface ActionState {
   token: boolean;
 }
-
 async function getToken() {
   const token = crypto.randomInt(100000, 999999).toString();
   const exists = await db.sMSToken.findUnique({
@@ -34,7 +51,6 @@ async function getToken() {
     return token;
   }
 }
-
 export async function smsLogIn(prevState: ActionState, formData: FormData) {
   const phone = formData.get("phone");
   const token = formData.get("token");
@@ -76,14 +92,31 @@ export async function smsLogIn(prevState: ActionState, formData: FormData) {
       };
     }
   } else {
-    const result = tokenSchema.safeParse(token);
+    const result = await tokenSchema.spa(token);
     if (!result.success) {
       return {
         token: true,
         error: result.error.flatten(),
       };
     } else {
-      redirect("/");
+      const token = await db.sMSToken.findUnique({
+        where: {
+          token: result.data.toString(),
+        },
+        select: {
+          id: true,
+          userId: true,
+        },
+      });
+      const session = await getSession();
+      session.id = token!.userId;
+      await session.save();
+      await db.sMSToken.delete({
+        where: {
+          id: token!.id,
+        },
+      });
+      redirect("/profile");
     }
   }
 }
